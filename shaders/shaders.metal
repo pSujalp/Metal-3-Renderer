@@ -29,6 +29,6 @@ fragment float4 fragmentShader(VertexOut in [[stage_in]],
     
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
 
-    const float4 colorSample = colorTexture.sample(textureSampler, in.texCoords);
+    const float4 colorSample = colorTexture.sample(textureSampler, in.texCoords) * float4(in.color,1.0f);
     return colorSample;
 }
