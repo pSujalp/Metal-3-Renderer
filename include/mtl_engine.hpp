@@ -15,6 +15,15 @@
 
 #include "magic_enum/magic_enum_all.hpp"
 
+#include "Camera.h"
+
+#include <glm/vec3.hpp> 
+#include <glm/vec4.hpp> 
+#include <glm/mat4x4.hpp> 
+#include <glm/ext/matrix_transform.hpp> 
+#include <glm/ext/matrix_clip_space.hpp> 
+#include <glm/ext/scalar_constants.hpp> 
+
 class MTLEngine {
 public:
     void init();
@@ -34,6 +43,10 @@ private:
     void sendRenderCommand();
     void draw();
 
+    void ProcessKeyboardInput(float deltaTime);
+
+    static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+    
     MTL::Device* metalDevice;
     GLFWwindow* glfwWindow;
     void* metalLayerHandle = nullptr;          
@@ -43,9 +56,23 @@ private:
     MTL::CommandQueue* metalCommandQueue;
     MTL::CommandBuffer* metalCommandBuffer;
     RenderPipelinePSO * renderPSO;
+
     MTL::Buffer* triangleVertexBuffer;
+    MTL::Buffer* transformationBuffer;
+
     DeletionQueue dq;
 
     Texture * texture;
+
+    Camera camera;
+
+
+    float deltaTime = 0.0f;	
+    float lastFrame = 0.0f;
+    float lastX;
+    float lastY;
+    bool firstMouse = true;
+    bool rightMouseButtonPressed = false;
+
     
 };

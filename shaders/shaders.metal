@@ -13,10 +13,11 @@ struct VertexOut {
 
 
 vertex VertexOut vertexShader(uint vertexID [[vertex_id]],
-             constant VertexData* vertexPositions[[buffer(BUFFER_INDEX::Position)]]){
+             constant VertexData* vertexPositions[[buffer(BUFFER_INDEX::Position)]],
+             constant MVP * mvp [[buffer(BUFFER_INDEX::MVP)]]){
     
     VertexOut v;
-    v.position = float4(vertexPositions[vertexID].position, 1.0f);
+    v.position = mvp->mvp * float4(vertexPositions[vertexID].position, 1.0f);
     v.texCoords = vertexPositions[vertexID].texCoords;
     v.color = vertexPositions[vertexID].color;
                 

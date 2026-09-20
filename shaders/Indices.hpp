@@ -3,7 +3,8 @@
 
 enum class BUFFER_INDEX : uint8_t {
 
-    Position
+    Position,
+    MVP
 
 };
 

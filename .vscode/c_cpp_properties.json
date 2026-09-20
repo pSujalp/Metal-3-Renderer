@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/shaders/**"
+                "${workspaceFolder}/shaders/**",
+                "/opt/homebrew/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang++",

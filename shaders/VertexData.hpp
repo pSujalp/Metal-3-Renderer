@@ -10,3 +10,8 @@ struct VertexData {
     float2 texCoords;
     float3 color;
 };
+
+
+struct MVP{
+    matrix_float4x4 mvp;
+};
