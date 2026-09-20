@@ -11,9 +11,44 @@ void MTLEngine::init()
 
     camera = Camera(glm::vec3(0.0f, 0.0f, 0.f));
 
+    createDepthAndTextures();
+
     createDefaultLibrary();
     createCommandQueue();
     createRenderPipeline();
+}
+
+void MTLEngine::createDepthAndTextures()
+{
+    int width, height;
+    glfwGetFramebufferSize(glfwWindow, &width, &height);
+
+    // Multisampled color target, resolved into the drawable each frame
+    MTL::TextureDescriptor *msaaTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
+    msaaTextureDescriptor->setTextureType(MTL::TextureType2DMultisample);
+    msaaTextureDescriptor->setPixelFormat(MTL::PixelFormatBGRA8Unorm);
+    msaaTextureDescriptor->setWidth(width);
+    msaaTextureDescriptor->setHeight(height);
+    msaaTextureDescriptor->setSampleCount(sampleCount);
+    msaaTextureDescriptor->setStorageMode(MTL::StorageModePrivate);
+    msaaTextureDescriptor->setUsage(MTL::TextureUsageRenderTarget);
+
+    renderTarget = metalDevice->newTexture(msaaTextureDescriptor);
+
+    // Depth must use the same sample count as the color target
+    MTL::TextureDescriptor *depthTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
+    depthTextureDescriptor->setTextureType(MTL::TextureType2DMultisample);
+    depthTextureDescriptor->setPixelFormat(MTL::PixelFormatDepth32Float);
+    depthTextureDescriptor->setWidth(width);
+    depthTextureDescriptor->setHeight(height);
+    depthTextureDescriptor->setSampleCount(sampleCount);
+    depthTextureDescriptor->setStorageMode(MTL::StorageModePrivate);
+    depthTextureDescriptor->setUsage(MTL::TextureUsageRenderTarget);
+
+    depthTexture = metalDevice->newTexture(depthTextureDescriptor);
+
+    msaaTextureDescriptor->release();
+    depthTextureDescriptor->release();
 }
 
 void MTLEngine::run()
@@ -34,7 +69,11 @@ void MTLEngine::cleanup()
     glfwTerminate();
 
     dq.push_function([this]
-                     { metalDevice->release(); });
+                     {
+                         metalDevice->release();
+                         renderTarget->release();
+                         depthTexture->release();
+                     });
 
     dq.flush();
 }
@@ -70,7 +109,7 @@ void MTLEngine::createTriangle()
     VertexData triangleVertices[] = {
         {{0.5f, -0.5f, 0.0f}, {0.0f, 0.0f}},
         {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f}},
-        {{0.0f,0.5f,0.0f}, {0.5f, 1.0f}}};
+        {{0.0f, 0.5f, 0.0f}, {0.5f, 1.0f}}};
 
     triangleVertexBuffer = metalDevice->newBuffer(&triangleVertices, sizeof(triangleVertices), MTL::ResourceStorageModeShared);
 
@@ -108,23 +147,30 @@ void MTLEngine::createRenderPipeline()
 
     texture = new Texture("assets/texel_checker.png", metalDevice);
 
-
-    MTL::DepthStencilDescriptor* dsd = MTL::DepthStencilDescriptor::alloc()->init();
+    MTL::DepthStencilDescriptor *dsd = MTL::DepthStencilDescriptor::alloc()->init();
     dsd->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
     dsd->setDepthWriteEnabled(true);
     metalDSO = metalDevice->newDepthStencilState(dsd);
 
     dsd->release();
 
-    std::vector<VertexData> positionsVertex;
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uv;
     std::vector<unsigned int> indices;
 
-    sphere = new Sphere();
+    sphere = new Sphere(5, 30, 20);
 
-    SphereVertexBuffer = metalDevice->newBuffer(sphere->positions.data(), sphere->positions.size() * sizeof(VertexData), MTL::ResourceStorageModeShared);
-    SphereIndexedBuffer = metalDevice->newBuffer(sphere->indices.data(), sphere->indices.size()* sizeof(unsigned int), MTL::ResourceStorageModeShared);
+    std::vector<VertexData> positionsVertex;
+    positionsVertex.reserve(sphere->positions.size());
+    for (size_t i = 0; i < sphere->positions.size(); i++)
+    {
+        const glm::vec3 &p = sphere->positions[i];
+        const glm::vec2 &t = sphere->uv[i];
+        positionsVertex.push_back(VertexData{{p.x, p.y, p.z}, {t.x, t.y}});
+    }
+
+    SphereVertexBuffer = metalDevice->newBuffer(positionsVertex.data(), positionsVertex.size() * sizeof(VertexData), MTL::ResourceStorageModeShared);
+    SphereIndexedBuffer = metalDevice->newBuffer(sphere->indices.data(), sphere->indices.size() * sizeof(unsigned int), MTL::ResourceStorageModeShared);
 }
 
 void MTLEngine::draw()
@@ -143,17 +189,18 @@ void MTLEngine::sendRenderCommand()
 
     MTL::RenderPassDescriptor *renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     MTL::RenderPassColorAttachmentDescriptor *cd = renderPassDescriptor->colorAttachments()->object(0);
-    MTL::RenderPassDepthAttachmentDescriptor* depthAttachment = renderPassDescriptor->depthAttachment();
+    MTL::RenderPassDepthAttachmentDescriptor *depthAttachment = renderPassDescriptor->depthAttachment();
 
+    depthAttachment->setTexture(depthTexture);
     depthAttachment->setLoadAction(MTL::LoadActionClear);
     depthAttachment->setStoreAction(MTL::StoreActionDontCare);
     depthAttachment->setClearDepth(1.0);
 
-
-    cd->setTexture(metalDrawable->texture());
+    cd->setTexture(renderTarget);
+    cd->setResolveTexture(metalDrawable->texture());
     cd->setLoadAction(MTL::LoadActionClear);
     cd->setClearColor(MTL::ClearColor(41.0f / 255.0f, 42.0f / 255.0f, 48.0f / 255.0f, 1.0));
-    cd->setStoreAction(MTL::StoreActionStore);
+    cd->setStoreAction(MTL::StoreActionMultisampleResolve);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
@@ -200,11 +247,8 @@ void MTLEngine::encodeRenderCommand(MTL::RenderCommandEncoder *renderCommandEnco
     renderCommandEncoder->setFragmentTexture(texture->texture, (NS::UInteger)TEXTURE_INDEX::BASE_COLOR);
 
     MTL::PrimitiveType typeTriangle = MTL::PrimitiveTypeTriangle;
-    NS::UInteger vertexStart = 0;
-    NS::UInteger vertexCount = 3;
-    
 
-    renderCommandEncoder->drawIndexedPrimitives(typeTriangle,sphere->indexCount,MTL::IndexTypeUInt32,SphereIndexedBuffer,0);
+    renderCommandEncoder->drawIndexedPrimitives(typeTriangle, sphere->indexCount, MTL::IndexTypeUInt32, SphereIndexedBuffer, 0);
 }
 
 void MTLEngine::ProcessKeyboardInput(float deltaTime)

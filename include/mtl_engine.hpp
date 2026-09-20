@@ -41,6 +41,8 @@ private:
     void createCommandQueue();
     void createRenderPipeline();
 
+    void createDepthAndTextures();
+
     void encodeRenderCommand(MTL::RenderCommandEncoder* renderEncoder);
     void sendRenderCommand();
     void draw();
@@ -48,6 +50,8 @@ private:
     void ProcessKeyboardInput(float deltaTime);
 
     static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+
+    static constexpr NS::UInteger sampleCount = 4;
     
     MTL::Device* metalDevice;
     GLFWwindow* glfwWindow;
@@ -70,11 +74,12 @@ private:
     DeletionQueue dq;
 
     Texture * texture;
-    
     Sphere * sphere;
-
-
     Camera camera;
+
+
+    MTL::Texture * renderTarget = nullptr;
+    MTL::Texture * depthTexture = nullptr;
 
 
     float deltaTime = 0.0f;	
