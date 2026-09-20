@@ -35,7 +35,7 @@ void MTLEngine::createDepthAndTextures()
 
     renderTarget = metalDevice->newTexture(msaaTextureDescriptor);
 
-    // Depth must use the same sample count as the color target
+    
     MTL::TextureDescriptor *depthTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
     depthTextureDescriptor->setTextureType(MTL::TextureType2DMultisample);
     depthTextureDescriptor->setPixelFormat(MTL::PixelFormatDepth32Float);
@@ -147,30 +147,14 @@ void MTLEngine::createRenderPipeline()
 
     texture = new Texture("assets/texel_checker.png", metalDevice);
 
-    MTL::DepthStencilDescriptor *dsd = MTL::DepthStencilDescriptor::alloc()->init();
-    dsd->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
-    dsd->setDepthWriteEnabled(true);
-    metalDSO = metalDevice->newDepthStencilState(dsd);
+    renderDepthStencilState = new RenderDepthStencilState(MTL::CompareFunctionLess,true,metalDevice);
 
-    dsd->release();
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uv;
     std::vector<unsigned int> indices;
 
-    sphere = new Sphere(5, 30, 20);
-
-    std::vector<VertexData> positionsVertex;
-    positionsVertex.reserve(sphere->positions.size());
-    for (size_t i = 0; i < sphere->positions.size(); i++)
-    {
-        const glm::vec3 &p = sphere->positions[i];
-        const glm::vec2 &t = sphere->uv[i];
-        positionsVertex.push_back(VertexData{{p.x, p.y, p.z}, {t.x, t.y}});
-    }
-
-    SphereVertexBuffer = metalDevice->newBuffer(positionsVertex.data(), positionsVertex.size() * sizeof(VertexData), MTL::ResourceStorageModeShared);
-    SphereIndexedBuffer = metalDevice->newBuffer(sphere->indices.data(), sphere->indices.size() * sizeof(unsigned int), MTL::ResourceStorageModeShared);
+    
 }
 
 void MTLEngine::draw()
@@ -241,14 +225,12 @@ void MTLEngine::sendRenderCommand()
 void MTLEngine::encodeRenderCommand(MTL::RenderCommandEncoder *renderCommandEncoder)
 {
     renderCommandEncoder->setRenderPipelineState(renderPSO->RenderPSO);
-    renderCommandEncoder->setDepthStencilState(metalDSO);
-    renderCommandEncoder->setVertexBuffer(SphereVertexBuffer, 0, (NS::UInteger)BUFFER_INDEX::Position);
+    renderCommandEncoder->setDepthStencilState(renderDepthStencilState->metalDSO);
+
     renderCommandEncoder->setVertexBuffer(transformationBuffer, 0, (NS::UInteger)BUFFER_INDEX::MVP);
     renderCommandEncoder->setFragmentTexture(texture->texture, (NS::UInteger)TEXTURE_INDEX::BASE_COLOR);
 
-    MTL::PrimitiveType typeTriangle = MTL::PrimitiveTypeTriangle;
 
-    renderCommandEncoder->drawIndexedPrimitives(typeTriangle, sphere->indexCount, MTL::IndexTypeUInt32, SphereIndexedBuffer, 0);
 }
 
 void MTLEngine::ProcessKeyboardInput(float deltaTime)

@@ -25,6 +25,7 @@
 #include <glm/ext/scalar_constants.hpp> 
 
 #include "Sphere.h"
+#include "RenderDepthStencilState.h"
 
 class MTLEngine {
 public:
@@ -63,7 +64,9 @@ private:
     MTL::CommandBuffer* metalCommandBuffer;
     RenderPipelinePSO * renderPSO;
 
-    MTL::DepthStencilState * metalDSO;
+    RenderDepthStencilState * renderDepthStencilState;
+
+    
 
     MTL::Buffer* triangleVertexBuffer;
     MTL::Buffer* transformationBuffer;
