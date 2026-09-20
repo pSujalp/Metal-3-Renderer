@@ -1,2 +1,2 @@
-# Metal 3 Renderer
+# Metal C++ Examples
 
