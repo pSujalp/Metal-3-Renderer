@@ -10,6 +10,11 @@
 #include "DeletionQueue.h"
 #include <iostream>
 #include "VertexData.hpp"
+#include "Indices.hpp"
+#include "Texture.hpp"
+
+#include "magic_enum/magic_enum_all.hpp"
+
 class MTLEngine {
 public:
     void init();
@@ -40,4 +45,7 @@ private:
     RenderPipelinePSO * renderPSO;
     MTL::Buffer* triangleVertexBuffer;
     DeletionQueue dq;
+
+    Texture * texture;
+    
 };

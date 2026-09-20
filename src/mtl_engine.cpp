@@ -62,9 +62,9 @@ void MTLEngine::initWindow() {
 
 void MTLEngine::createTriangle() {
     VertexData triangleVertices[] = {
-       {{0.5f, -0.5f, 0.0f},  {1.0f, 0.0f, 0.0f}},  
-       {{-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},  
-       {{0.0f,  0.5f, 0.0f,}, {0.0f, 0.0f, 1.0f }}
+       {{0.5f, -0.5f, 0.0f},   {0.0f, 0.0f},   {1.0f, 0.0f, 0.0f}},  
+       {{-0.5f, -0.5f, 0.0f},  {1.0f, 0.0f},   {0.0f, 1.0f, 0.0f}},  
+       {{0.0f,  0.5f, 0.0f,},  {0.5f, 1.0f} ,  {0.0f, 0.0f, 1.0f }}
     };
 
     triangleVertexBuffer = metalDevice->newBuffer(&triangleVertices, sizeof(triangleVertices), MTL::ResourceStorageModeShared);
@@ -94,6 +94,8 @@ void MTLEngine::createRenderPipeline() {
 
 
     renderPSO = new RenderPipelinePSO("vertexShader","fragmentShader",metalDefaultLibrary,metalLayerHandle,metalDevice);
+
+    texture = new Texture("assets/mc_grass.jpeg",metalDevice);
 }
 
 void MTLEngine::draw() {
@@ -124,7 +126,8 @@ void MTLEngine::sendRenderCommand() {
 
 void MTLEngine::encodeRenderCommand(MTL::RenderCommandEncoder* renderCommandEncoder) {
     renderCommandEncoder->setRenderPipelineState(renderPSO->RenderPSO);
-    renderCommandEncoder->setVertexBuffer(triangleVertexBuffer, 0, 0);
+    renderCommandEncoder->setVertexBuffer(triangleVertexBuffer, 0, (NS::UInteger) BUFFER_INDEX::Position);
+    renderCommandEncoder->setFragmentTexture(texture->texture, 0);
     MTL::PrimitiveType typeTriangle = MTL::PrimitiveTypeTriangle;
     NS::UInteger vertexStart = 0;
     NS::UInteger vertexCount = 3;
