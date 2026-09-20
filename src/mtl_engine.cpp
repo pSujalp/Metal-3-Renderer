@@ -11,6 +11,8 @@ void MTLEngine::init()
 
     camera = Camera(glm::vec3(0.0f, 0.0f, 0.f));
 
+    model = new Model("assets/FBX_file/Untitled.fbx_Collection.fbx",metalDevice);
+
     createDepthAndTextures();
 
     createDefaultLibrary();
@@ -187,7 +189,7 @@ void MTLEngine::sendRenderCommand()
     cd->setStoreAction(MTL::StoreActionMultisampleResolve);
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, -100.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 
     static float accumulatedDegrees = 0.0f;
@@ -227,10 +229,12 @@ void MTLEngine::encodeRenderCommand(MTL::RenderCommandEncoder *renderCommandEnco
     renderCommandEncoder->setRenderPipelineState(renderPSO->RenderPSO);
     renderCommandEncoder->setDepthStencilState(renderDepthStencilState->metalDSO);
 
-    renderCommandEncoder->setVertexBuffer(transformationBuffer, 0, (NS::UInteger)BUFFER_INDEX::MVP);
-    renderCommandEncoder->setFragmentTexture(texture->texture, (NS::UInteger)TEXTURE_INDEX::BASE_COLOR);
-
-
+    for(const auto &i: model->meshes){
+        renderCommandEncoder->setVertexBytes(i->VerticesBuffer,0, (NS::UInteger)BUFFER_INDEX::Position);
+        renderCommandEncoder->setVertexBuffer(transformationBuffer, 0, (NS::UInteger)BUFFER_INDEX::MVP);
+        renderCommandEncoder->setFragmentTexture(texture->texture, (NS::UInteger)TEXTURE_INDEX::BASE_COLOR);
+        renderCommandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, (NS::UInteger) i->IndexCount ,MTL::IndexTypeUInt32, i->IndicesBuffer,0);
+    }
 }
 
 void MTLEngine::ProcessKeyboardInput(float deltaTime)

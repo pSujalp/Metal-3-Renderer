@@ -26,6 +26,7 @@
 
 #include "Sphere.h"
 #include "RenderDepthStencilState.h"
+#include "Model.h"
 
 class MTLEngine {
 public:
@@ -79,6 +80,8 @@ private:
     Texture * texture;
     Sphere * sphere;
     Camera camera;
+
+    Model * model;
 
 
     MTL::Texture * renderTarget = nullptr;
