@@ -52,8 +52,6 @@ void MTLEngine::initWindow()
 
     glfwSetMouseButtonCallback(glfwWindow, mouse_button_callback);
 
-    
-
     if (!glfwWindow)
     {
         glfwTerminate();
@@ -70,15 +68,9 @@ void MTLEngine::initWindow()
 void MTLEngine::createTriangle()
 {
     VertexData triangleVertices[] = {
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-        {{
-             0.0f,
-             0.5f,
-             0.0f,
-         },
-         {0.5f, 1.0f},
-         {0.0f, 0.0f, 1.0f}}};
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 0.0f}},
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f}},
+        {{0.0f,0.5f,0.0f}, {0.5f, 1.0f}}};
 
     triangleVertexBuffer = metalDevice->newBuffer(&triangleVertices, sizeof(triangleVertices), MTL::ResourceStorageModeShared);
 
@@ -101,9 +93,7 @@ void MTLEngine::createDefaultLibrary()
         std::exit(-1);
     }
     dq.push_function([this]
-                     {
-
-        if(metalDefaultLibrary) metalDefaultLibrary->release(); });
+                     {if(metalDefaultLibrary) metalDefaultLibrary->release(); });
 }
 
 void MTLEngine::createCommandQueue()
@@ -116,7 +106,25 @@ void MTLEngine::createRenderPipeline()
 
     renderPSO = new RenderPipelinePSO("vertexShader", "fragmentShader", metalDefaultLibrary, metalLayerHandle, metalDevice);
 
-    texture = new Texture("assets/mc_grass.jpeg", metalDevice);
+    texture = new Texture("assets/texel_checker.png", metalDevice);
+
+
+    MTL::DepthStencilDescriptor* dsd = MTL::DepthStencilDescriptor::alloc()->init();
+    dsd->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
+    dsd->setDepthWriteEnabled(true);
+    metalDSO = metalDevice->newDepthStencilState(dsd);
+
+    dsd->release();
+
+    std::vector<VertexData> positionsVertex;
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uv;
+    std::vector<unsigned int> indices;
+
+    sphere = new Sphere();
+
+    SphereVertexBuffer = metalDevice->newBuffer(sphere->positions.data(), sphere->positions.size() * sizeof(VertexData), MTL::ResourceStorageModeShared);
+    SphereIndexedBuffer = metalDevice->newBuffer(sphere->indices.data(), sphere->indices.size()* sizeof(unsigned int), MTL::ResourceStorageModeShared);
 }
 
 void MTLEngine::draw()
@@ -135,6 +143,13 @@ void MTLEngine::sendRenderCommand()
 
     MTL::RenderPassDescriptor *renderPassDescriptor = MTL::RenderPassDescriptor::alloc()->init();
     MTL::RenderPassColorAttachmentDescriptor *cd = renderPassDescriptor->colorAttachments()->object(0);
+    MTL::RenderPassDepthAttachmentDescriptor* depthAttachment = renderPassDescriptor->depthAttachment();
+
+    depthAttachment->setLoadAction(MTL::LoadActionClear);
+    depthAttachment->setStoreAction(MTL::StoreActionDontCare);
+    depthAttachment->setClearDepth(1.0);
+
+
     cd->setTexture(metalDrawable->texture());
     cd->setLoadAction(MTL::LoadActionClear);
     cd->setClearColor(MTL::ClearColor(41.0f / 255.0f, 42.0f / 255.0f, 48.0f / 255.0f, 1.0));
@@ -144,7 +159,6 @@ void MTLEngine::sendRenderCommand()
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 
-    
     static float accumulatedDegrees = 0.0f;
     const float rotationSpeedDegreesPerSecond = 45.0f;
     accumulatedDegrees += rotationSpeedDegreesPerSecond * deltaTime;
@@ -180,15 +194,17 @@ void MTLEngine::sendRenderCommand()
 void MTLEngine::encodeRenderCommand(MTL::RenderCommandEncoder *renderCommandEncoder)
 {
     renderCommandEncoder->setRenderPipelineState(renderPSO->RenderPSO);
-
-    renderCommandEncoder->setVertexBuffer(triangleVertexBuffer, 0, (NS::UInteger)BUFFER_INDEX::Position);
+    renderCommandEncoder->setDepthStencilState(metalDSO);
+    renderCommandEncoder->setVertexBuffer(SphereVertexBuffer, 0, (NS::UInteger)BUFFER_INDEX::Position);
     renderCommandEncoder->setVertexBuffer(transformationBuffer, 0, (NS::UInteger)BUFFER_INDEX::MVP);
     renderCommandEncoder->setFragmentTexture(texture->texture, (NS::UInteger)TEXTURE_INDEX::BASE_COLOR);
 
     MTL::PrimitiveType typeTriangle = MTL::PrimitiveTypeTriangle;
     NS::UInteger vertexStart = 0;
     NS::UInteger vertexCount = 3;
-    renderCommandEncoder->drawPrimitives(typeTriangle, vertexStart, vertexCount);
+    
+
+    renderCommandEncoder->drawIndexedPrimitives(typeTriangle,sphere->indexCount,MTL::IndexTypeUInt32,SphereIndexedBuffer,0);
 }
 
 void MTLEngine::ProcessKeyboardInput(float deltaTime)
@@ -211,7 +227,6 @@ void MTLEngine::ProcessKeyboardInput(float deltaTime)
     if (glfwGetKey(glfwWindow, GLFW_KEY_M) == GLFW_PRESS)
         glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
-
 
 void MTLEngine::mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {

@@ -24,6 +24,8 @@
 #include <glm/ext/matrix_clip_space.hpp> 
 #include <glm/ext/scalar_constants.hpp> 
 
+#include "Sphere.h"
+
 class MTLEngine {
 public:
     void init();
@@ -57,12 +59,20 @@ private:
     MTL::CommandBuffer* metalCommandBuffer;
     RenderPipelinePSO * renderPSO;
 
+    MTL::DepthStencilState * metalDSO;
+
     MTL::Buffer* triangleVertexBuffer;
     MTL::Buffer* transformationBuffer;
+
+    MTL::Buffer*SphereVertexBuffer;
+    MTL::Buffer * SphereIndexedBuffer;
 
     DeletionQueue dq;
 
     Texture * texture;
+    
+    Sphere * sphere;
+
 
     Camera camera;
 
