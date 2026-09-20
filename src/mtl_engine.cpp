@@ -147,14 +147,10 @@ void MTLEngine::createRenderPipeline()
 
     renderPSO = new RenderPipelinePSO("vertexShader", "fragmentShader", metalDefaultLibrary, metalLayerHandle, metalDevice);
 
-    texture = new Texture("assets/texel_checker.png", metalDevice);
+    texture = new Texture("assets/FBX_file/Untitled.fbx_Collection.fbm/1001_albedo.jpg", metalDevice);
 
     renderDepthStencilState = new RenderDepthStencilState(MTL::CompareFunctionLess,true,metalDevice);
 
-
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uv;
-    std::vector<unsigned int> indices;
 
     
 }
@@ -189,7 +185,7 @@ void MTLEngine::sendRenderCommand()
     cd->setStoreAction(MTL::StoreActionMultisampleResolve);
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, -100.0f));
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 
     static float accumulatedDegrees = 0.0f;
@@ -204,7 +200,7 @@ void MTLEngine::sendRenderCommand()
     float aspectRatio = (float)800 / (float)600;
     float fov = camera.Zoom;
     float nearZ = 0.1f;
-    float farZ = 100.0f;
+    float farZ = 1000.0f;
     glm::mat4 perspectiveMatrix = glm::perspective(fov, aspectRatio, nearZ, farZ);
     glm::mat4 MVP_GLM = perspectiveMatrix * viewMatrix * model;
 
@@ -214,7 +210,11 @@ void MTLEngine::sendRenderCommand()
     memcpy(transformationBuffer->contents(), &mvp1, sizeof(MVP));
 
     MTL::RenderCommandEncoder *renderCommandEncoder = metalCommandBuffer->renderCommandEncoder(renderPassDescriptor);
+
+
     encodeRenderCommand(renderCommandEncoder);
+
+
     renderCommandEncoder->endEncoding();
 
     metalCommandBuffer->presentDrawable(metalDrawable);
@@ -226,14 +226,15 @@ void MTLEngine::sendRenderCommand()
 
 void MTLEngine::encodeRenderCommand(MTL::RenderCommandEncoder *renderCommandEncoder)
 {
-    renderCommandEncoder->setRenderPipelineState(renderPSO->RenderPSO);
-    renderCommandEncoder->setDepthStencilState(renderDepthStencilState->metalDSO);
+    
 
     for(const auto &i: model->meshes){
-        renderCommandEncoder->setVertexBytes(i->VerticesBuffer,0, (NS::UInteger)BUFFER_INDEX::Position);
+        renderCommandEncoder->setRenderPipelineState(renderPSO->RenderPSO);
+        renderCommandEncoder->setDepthStencilState(renderDepthStencilState->metalDSO);
+        renderCommandEncoder->setVertexBuffer(i->VerticesBuffer, 0, (NS::UInteger)BUFFER_INDEX::Position);
         renderCommandEncoder->setVertexBuffer(transformationBuffer, 0, (NS::UInteger)BUFFER_INDEX::MVP);
         renderCommandEncoder->setFragmentTexture(texture->texture, (NS::UInteger)TEXTURE_INDEX::BASE_COLOR);
-        renderCommandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, (NS::UInteger) i->IndexCount ,MTL::IndexTypeUInt32, i->IndicesBuffer,0);
+        renderCommandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, (NS::UInteger) i->IndexCount , MTL::IndexTypeUInt32, i->IndicesBuffer,0);
     }
 }
 

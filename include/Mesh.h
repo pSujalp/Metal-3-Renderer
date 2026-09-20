@@ -19,7 +19,6 @@ class Mesh{
 
     MTL::Buffer * VerticesBuffer;
     MTL::Buffer * IndicesBuffer;
-
     size_t IndexCount = 0;
 
 
