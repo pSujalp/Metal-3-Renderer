@@ -108,7 +108,10 @@ void Model::loadTextures(const ufbx_material_list materiallist, MTL::Device * me
                     pbrmat.Roughness_texture = texture;
                 if (strcmp(tex.texture->element.name.data, "specular_texture") == 0)
                     pbrmat.Specular_Texture = texture;
+                
+              std::cout << tex.texture->element.name.data << std::endl;
             }
+
             pbr_textures_map[mat->name.data] = std::move(pbrmat);
         }
     }
