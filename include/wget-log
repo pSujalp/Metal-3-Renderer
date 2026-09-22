@@ -1,0 +1,24 @@
+URL transformed to HTTPS due to an HSTS policy
+--2026-09-22 12:58:44--  https://github.com/pSujalp/METAL4-Renderer/raw/refs/heads/last-working_model/include/stb_image.h
+Resolving github.com (github.com)... 20.207.73.82
+Connecting to github.com (github.com)|20.207.73.82|:443... connected.
+HTTP request sent, awaiting response... 302 Found
+Location: https://raw.githubusercontent.com/pSujalp/METAL4-Renderer/refs/heads/last-working_model/include/stb_image.h [following]
+--2026-09-22 12:58:45--  https://raw.githubusercontent.com/pSujalp/METAL4-Renderer/refs/heads/last-working_model/include/stb_image.h
+Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.109.133, 185.199.108.133, 185.199.110.133, ...
+Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.109.133|:443... failed: Operation timed out.
+Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.108.133|:443... failed: Operation timed out.
+Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.110.133|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 283010 (276K) [text/plain]
+Saving to: ‘stb_image.h’
+
+     0K .......... .......... .......... .......... .......... 18%  301K 1s
+    50K .......... .......... .......... .......... .......... 36% 1.44M 0s
+   100K .......... .......... .......... .......... .......... 54% 6.96M 0s
+   150K .......... .......... .......... .......... .......... 72% 1.97M 0s
+   200K .......... .......... .......... .......... .......... 90% 14.2M 0s
+   250K .......... .......... ......                          100% 50.5M=0.2s
+
+2026-09-22 12:59:26 (1.14 MB/s) - ‘stb_image.h’ saved [283010/283010]
+

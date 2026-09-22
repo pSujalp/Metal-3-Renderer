@@ -1,20 +1,29 @@
-//
-//  Texture.hpp
-//  Metal-Tutorial
-//
+
 
 #pragma once
 #include <Metal/Metal.hpp>
-#include <stb/stb_image.h>
+#include "stb/stb_image.h"
 
-
-class Texture {
+class Texture
+{
 public:
-    Texture(const char* filepath, MTL::Device* metalDevice);
+    Texture(const char *filepath, MTL::Device *metalDevice);
+    Texture(unsigned char * data, unsigned long len,MTL::Device *metalDevice);
     ~Texture();
-    MTL::Texture* texture;
+    MTL::Texture *texture;
     int width, height, channels;
 
 private:
-    MTL::Device* device;
+    MTL::Device *device;
+};
+
+class CubeTexture
+{
+public:
+    CubeTexture(const char *facePaths[6], MTL::Device *metalDevice);
+    ~CubeTexture();
+    MTL::Texture *texture;
+
+private:
+    MTL::Device *device;
 };

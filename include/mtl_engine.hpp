@@ -79,7 +79,7 @@ private:
     Sphere * sphere;
     Camera camera;
 
-    Model * model;
+    Model * model1;
 
 
     MTL::Texture * depthTexture = nullptr;

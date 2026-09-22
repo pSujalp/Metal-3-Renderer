@@ -11,7 +11,7 @@ void MTLEngine::init()
 
     camera = Camera(glm::vec3(0.0f, 0.0f, 0.f));
 
-    model = new Model("assets/FBX_file/Untitled.fbx_Collection.fbx",metalDevice);
+    model1 = new Model("assets/Backpack_embedded1.fbx",metalDevice);
 
     createDepthAndTextures();
 
@@ -194,8 +194,9 @@ void MTLEngine::sendRenderCommand()
 
     MTL::RenderCommandEncoder *renderCommandEncoder = metalCommandBuffer->renderCommandEncoder(renderPassDescriptor);
 
-
-    encodeRenderCommand(renderCommandEncoder);
+    model1->Draw(renderCommandEncoder,
+         renderPSO->RenderPSO , renderDepthStencilState->metalDSO,
+         transformationBuffer);
 
 
     renderCommandEncoder->endEncoding();
@@ -207,18 +208,7 @@ void MTLEngine::sendRenderCommand()
     renderPassDescriptor->release();
 }
 
-void MTLEngine::encodeRenderCommand(MTL::RenderCommandEncoder *renderCommandEncoder)
-{
-    
-
-    for(const auto &i: model->meshes){
-        renderCommandEncoder->setRenderPipelineState(renderPSO->RenderPSO);
-        renderCommandEncoder->setDepthStencilState(renderDepthStencilState->metalDSO);
-        renderCommandEncoder->setVertexBuffer(i->VerticesBuffer, 0, (NS::UInteger)BUFFER_INDEX::Position);
-        renderCommandEncoder->setVertexBuffer(transformationBuffer, 0, (NS::UInteger)BUFFER_INDEX::MVP);
-        renderCommandEncoder->setFragmentTexture(texture->texture, (NS::UInteger)TEXTURE_INDEX::BASE_COLOR);
-        renderCommandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, (NS::UInteger) i->IndexCount , MTL::IndexTypeUInt32, i->IndicesBuffer,0);
-    }
+void MTLEngine::encodeRenderCommand(MTL::RenderCommandEncoder *renderCommandEncoder){
 }
 
 void MTLEngine::ProcessKeyboardInput(float deltaTime)
