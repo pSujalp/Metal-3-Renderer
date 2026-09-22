@@ -18,12 +18,16 @@ vertex VertexOut vertexShader(uint vertexID [[vertex_id]],
     VertexOut v;
     v.position = mvp->mvp * float4(vertexPositions[vertexID].position, 1.0f);
     v.texCoords = vertexPositions[vertexID].texCoords;
-                
     return v;
 }
 
 fragment float4 fragmentShader(VertexOut in [[stage_in]],
-                texture2d<float> colorTexture [[texture(TEXTURE_INDEX::BASE_COLOR)]]) {
+                texture2d<float> colorTexture [[texture(TEXTURE_INDEX::BASE_COLOR)]],
+                texture2d<float> normalTexture [[texture(TEXTURE_INDEX::NORMAL)]],
+                texture2d<float> roughTexture [[texture(TEXTURE_INDEX::ROUGHNESS)]],
+                texture2d<float> metallicTexture [[texture(TEXTURE_INDEX::METALLIC)]],
+                texture2d<float> specularTexture [[texture(TEXTURE_INDEX::SPECULAR)]]
+                ) {
     
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
 

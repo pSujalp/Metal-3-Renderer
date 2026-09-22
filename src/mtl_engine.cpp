@@ -10,7 +10,6 @@ void MTLEngine::init()
     createTriangle();
 
     camera = Camera(glm::vec3(0.0f, 0.0f, 0.f));
-
     model1 = new Model("assets/Backpack_embedded1.fbx",metalDevice);
 
     createDepthAndTextures();
@@ -60,7 +59,6 @@ void MTLEngine::cleanup()
                          metalDevice->release();
                          depthTexture->release();
                      });
-
     dq.flush();
 }
 
