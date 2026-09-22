@@ -25,31 +25,16 @@ void MTLEngine::createDepthAndTextures()
     int width, height;
     glfwGetFramebufferSize(glfwWindow, &width, &height);
 
-    // Multisampled color target, resolved into the drawable each frame
-    MTL::TextureDescriptor *msaaTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
-    msaaTextureDescriptor->setTextureType(MTL::TextureType2DMultisample);
-    msaaTextureDescriptor->setPixelFormat(MTL::PixelFormatBGRA8Unorm);
-    msaaTextureDescriptor->setWidth(width);
-    msaaTextureDescriptor->setHeight(height);
-    msaaTextureDescriptor->setSampleCount(sampleCount);
-    msaaTextureDescriptor->setStorageMode(MTL::StorageModePrivate);
-    msaaTextureDescriptor->setUsage(MTL::TextureUsageRenderTarget);
-
-    renderTarget = metalDevice->newTexture(msaaTextureDescriptor);
-
-    
     MTL::TextureDescriptor *depthTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
-    depthTextureDescriptor->setTextureType(MTL::TextureType2DMultisample);
+    depthTextureDescriptor->setTextureType(MTL::TextureType2D);
     depthTextureDescriptor->setPixelFormat(MTL::PixelFormatDepth32Float);
     depthTextureDescriptor->setWidth(width);
     depthTextureDescriptor->setHeight(height);
-    depthTextureDescriptor->setSampleCount(sampleCount);
     depthTextureDescriptor->setStorageMode(MTL::StorageModePrivate);
     depthTextureDescriptor->setUsage(MTL::TextureUsageRenderTarget);
 
     depthTexture = metalDevice->newTexture(depthTextureDescriptor);
 
-    msaaTextureDescriptor->release();
     depthTextureDescriptor->release();
 }
 
@@ -73,7 +58,6 @@ void MTLEngine::cleanup()
     dq.push_function([this]
                      {
                          metalDevice->release();
-                         renderTarget->release();
                          depthTexture->release();
                      });
 
@@ -103,7 +87,7 @@ void MTLEngine::initWindow()
     glfwGetFramebufferSize(glfwWindow, &width, &height);
 
     metalLayerHandle = MetalViewBridge::CreateAndAttachLayer(
-        glfwWindow, metalDevice, MTL::PixelFormatBGRA8Unorm, width, height);
+        glfwWindow, metalDevice, MTL::PixelFormatBGRA8Unorm_sRGB, width, height);
 }
 
 void MTLEngine::createTriangle()
@@ -178,11 +162,10 @@ void MTLEngine::sendRenderCommand()
     depthAttachment->setStoreAction(MTL::StoreActionDontCare);
     depthAttachment->setClearDepth(1.0);
 
-    cd->setTexture(renderTarget);
-    cd->setResolveTexture(metalDrawable->texture());
+    cd->setTexture(metalDrawable->texture());
     cd->setLoadAction(MTL::LoadActionClear);
     cd->setClearColor(MTL::ClearColor(41.0f / 255.0f, 42.0f / 255.0f, 48.0f / 255.0f, 1.0));
-    cd->setStoreAction(MTL::StoreActionMultisampleResolve);
+    cd->setStoreAction(MTL::StoreActionStore);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, -10.0f));

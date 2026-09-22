@@ -53,8 +53,6 @@ private:
 
     static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
-    static constexpr NS::UInteger sampleCount = 4;
-    
     MTL::Device* metalDevice;
     GLFWwindow* glfwWindow;
     void* metalLayerHandle = nullptr;          
@@ -84,7 +82,6 @@ private:
     Model * model;
 
 
-    MTL::Texture * renderTarget = nullptr;
     MTL::Texture * depthTexture = nullptr;
 
 

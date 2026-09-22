@@ -30,9 +30,8 @@ fragment float4 fragmentShader(VertexOut in [[stage_in]],
     
 
 
-    float3 hdrColor = colorTexture.sample(textureSampler, in.texCoords).rgb;
-    float3 result = float3(1.0f) - exp(-hdrColor * 5.5f);
+    float4 baseColour = colorTexture.sample(textureSampler, in.texCoords);
 
 
-    return float4(result,1.0f);
+    return baseColour;
 }
