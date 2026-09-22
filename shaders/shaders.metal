@@ -22,20 +22,24 @@ vertex VertexOut vertexShader(uint vertexID [[vertex_id]],
 }
 
 fragment float4 fragmentShader(VertexOut in [[stage_in]],
-                texture2d<float> colorTexture [[texture(TEXTURE_INDEX::BASE_COLOR)]],
+                texture2d<float> colorTexture [[texture(TEXTURE_INDEX::ALBEDO)]],
                 texture2d<float> normalTexture [[texture(TEXTURE_INDEX::NORMAL)]],
                 texture2d<float> roughTexture [[texture(TEXTURE_INDEX::ROUGHNESS)]],
                 texture2d<float> metallicTexture [[texture(TEXTURE_INDEX::METALLIC)]],
-                texture2d<float> specularTexture [[texture(TEXTURE_INDEX::SPECULAR)]]
-                ) {
+                texture2d<float> specularTexture [[texture(TEXTURE_INDEX::SPECULAR)]],
+                constant PBR_COLOR & pbr_color [[buffer(TEXTURE_INDEX::BASE_COLOR)]]) {
     
     constexpr sampler textureSampler (mag_filter::linear,min_filter::linear);
 
+
+    float4 baseColour;
+
+    if (!is_null_texture(colorTexture))
+                       baseColour= colorTexture.sample(textureSampler, in.texCoords);
+
+    else baseColour = pbr_color.base_color;
+
     
-
-
-    float4 baseColour = colorTexture.sample(textureSampler, in.texCoords);
-
-
+    
     return baseColour;
 }

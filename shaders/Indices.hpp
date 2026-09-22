@@ -10,10 +10,15 @@ enum class BUFFER_INDEX : uint8_t {
 
 enum class TEXTURE_INDEX : uint8_t {
 
-    BASE_COLOR,
+    ALBEDO,
     SPECULAR,
     METALLIC,
     ROUGHNESS,
-    NORMAL
+    NORMAL,
+
+
+    BASE_COLOR
+   
 
 };
+

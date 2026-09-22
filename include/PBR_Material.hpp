@@ -4,10 +4,15 @@
 #include "Texture.hpp"
 
 
+#include <simd/simd.h>
+
+using namespace simd;
+
 struct PBRMaterial{
-    Texture * Albedo_texture;
-    Texture * Specular_Texture;
-    Texture * Roughness_texture;
-    Texture * Metallic_texture;
-    Texture * Normal_texture;;
+    Texture * Albedo_texture = nullptr;
+    Texture * Specular_Texture = nullptr;
+    Texture * Roughness_texture = nullptr;
+    Texture * Metallic_texture = nullptr;
+    Texture * Normal_texture = nullptr;
 };
+

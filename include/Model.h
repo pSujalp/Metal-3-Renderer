@@ -14,6 +14,7 @@ class Model{
 
     std::vector<Mesh*> meshes;
     std::unordered_map<std::string, PBRMaterial> pbr_textures_map;
+    std::unordered_map<std::string, PBR_COLOR> pbr_color_map;
 
 
     Model() = default;

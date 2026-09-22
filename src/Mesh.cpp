@@ -8,38 +8,49 @@ Mesh::Mesh(std::vector<VertexData> vertices, std::vector<uint32_t>  indices, std
     IndicesBuffer = metalDevice->newBuffer(indices.data(), sizeof(uint32_t) * indices.size(), MTL::ResourceStorageModeShared);
     this->IndexCount = indices.size();
     this->mat_name = mat_name;
+
+    colorBuffer = metalDevice->newBuffer(sizeof(PBR_COLOR),MTL::ResourceStorageModeManaged);
 }
 
 Mesh::~Mesh(){
 
     if(VerticesBuffer) VerticesBuffer->release();
     if(IndicesBuffer) IndicesBuffer->release();
+    if(colorBuffer) colorBuffer->release();
 }
 
 
-void Mesh::Draw(MTL::RenderCommandEncoder * encoder, MTL::RenderPipelineState * Rpso, MTL::DepthStencilState * DSO , PBRMaterial pbr_mat, MTL::Buffer * transformationBuffer){
+void Mesh::Draw(MTL::RenderCommandEncoder * encoder, MTL::RenderPipelineState * Rpso, MTL::DepthStencilState * DSO , PBRMaterial pbr_mat, PBR_COLOR pbr_color,MTL::Buffer * transformationBuffer){
 
         encoder->setRenderPipelineState(Rpso);
         encoder->setDepthStencilState(DSO);
         encoder->setVertexBuffer(VerticesBuffer, 0, (NS::UInteger)BUFFER_INDEX::Position);
         encoder->setVertexBuffer(transformationBuffer, 0, (NS::UInteger)BUFFER_INDEX::MVP);
 
-        if(pbr_mat.Albedo_texture->texture){
-            encoder->setFragmentTexture(pbr_mat.Albedo_texture->texture, (NS::UInteger)TEXTURE_INDEX::BASE_COLOR);
+        if(pbr_mat.Albedo_texture != nullptr){
+            encoder->setFragmentTexture(pbr_mat.Albedo_texture->texture, (NS::UInteger)TEXTURE_INDEX::ALBEDO);
         }
 
-        if(pbr_mat.Metallic_texture->texture){
+        else {
+        memcpy(colorBuffer->contents() , &pbr_color , sizeof(PBR_COLOR));
+        encoder->setFragmentBuffer(colorBuffer, 0 , (NS::UInteger) TEXTURE_INDEX::BASE_COLOR);
+        }
+        
+        if(pbr_mat.Metallic_texture != nullptr){
             encoder->setFragmentTexture(pbr_mat.Metallic_texture->texture, (NS::UInteger)TEXTURE_INDEX::METALLIC);
         }
-        if(pbr_mat.Normal_texture->texture){
+        if(pbr_mat.Normal_texture != nullptr){
             encoder->setFragmentTexture(pbr_mat.Normal_texture->texture, (NS::UInteger)TEXTURE_INDEX::NORMAL);
         }
-        if(pbr_mat.Specular_Texture->texture){
+        if(pbr_mat.Specular_Texture != nullptr){
             encoder->setFragmentTexture(pbr_mat.Specular_Texture->texture, (NS::UInteger)TEXTURE_INDEX::SPECULAR);
         }
-        if(pbr_mat.Roughness_texture->texture){
+        if(pbr_mat.Roughness_texture != nullptr){
             encoder->setFragmentTexture(pbr_mat.Roughness_texture->texture, (NS::UInteger)TEXTURE_INDEX::ROUGHNESS);
         }
+
+
+        
         
         
         

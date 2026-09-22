@@ -38,9 +38,11 @@ Model::Model(const std::string &path, MTL::Device *metalDevice)
                 uint32_t num_tris = ufbx_triangulate_face(tri_indices.data(), tri_indices.size(), mesh, face);
 
                 auto *material = mesh->materials.data[part.index];
+
+
                 const ufbx_material_list materiallist = mesh->materials;
 
-                loadTextures(materiallist,metalDevice);
+                if(materiallist.count > 0) loadTextures(materiallist,metalDevice);
 
 
                 mat_name = material->name.data;
@@ -93,6 +95,16 @@ void Model::loadTextures(const ufbx_material_list materiallist, MTL::Device * me
 
         const ufbx_material_texture_list materiallist_textures = mat->textures;
         PBRMaterial pbrmat;
+        PBR_COLOR pbr_color;
+
+
+        if(mat->pbr.base_color.texture_enabled == false){
+            pbr_color.base_color = float4{(float)mat->pbr.base_color.value_vec3.x , (float)mat->pbr.base_color.value_vec3.y ,(float) mat->pbr.base_color.value_vec3.z , (float) 1.0f};
+            pbr_color_map[mat->name.data] = std::move(pbr_color);
+            continue;
+        }
+
+        
         for (const auto &tex : materiallist_textures)
         {
             if (tex.texture->content.data && tex.texture->content.size > 0)
@@ -113,6 +125,7 @@ void Model::loadTextures(const ufbx_material_list materiallist, MTL::Device * me
             }
 
             pbr_textures_map[mat->name.data] = std::move(pbrmat);
+            
         }
     }
 }
@@ -120,6 +133,6 @@ void Model::loadTextures(const ufbx_material_list materiallist, MTL::Device * me
 
 void Model::Draw(MTL::RenderCommandEncoder * encoder, MTL::RenderPipelineState * Rpso, MTL::DepthStencilState * DSO,  MTL::Buffer * transformationBuffer){
     for(const auto &i : meshes){
-        i->Draw(encoder,Rpso,DSO,this->pbr_textures_map[i->mat_name],transformationBuffer);
+        i->Draw(encoder,Rpso,DSO,this->pbr_textures_map[i->mat_name],this->pbr_color_map[i->mat_name],transformationBuffer);
     }
 }
