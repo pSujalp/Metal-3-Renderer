@@ -101,16 +101,20 @@ void Model::loadTextures(const ufbx_material_list materiallist, MTL::Device * me
         if(mat->pbr.base_color.texture_enabled == false){
             pbr_color.base_color = float4{(float)mat->pbr.base_color.value_vec3.x , (float)mat->pbr.base_color.value_vec3.y ,(float) mat->pbr.base_color.value_vec3.z , (float) 1.0f};
             pbr_color_map[mat->name.data] = std::move(pbr_color);
-            continue;
         }
-
-        
         for (const auto &tex : materiallist_textures)
         {
+            Texture *texture ;
             if (tex.texture->content.data && tex.texture->content.size > 0)
             {
-                Texture *texture = new Texture((unsigned char *)tex.texture->content.data, (size_t)tex.texture->content.size, metalDevice);
-                if (strcmp(tex.texture->element.name.data, "base_color_texture") == 0)
+                texture = new Texture((unsigned char *)tex.texture->content.data, (size_t)tex.texture->content.size, metalDevice); 
+                std::cout << tex.texture->element.name.data << std::endl;
+            }
+            else {
+                texture = new Texture(tex.texture->filename.data,metalDevice);
+                std::cout << tex.texture->element.name.data << std::endl;
+            }
+             if (strcmp(tex.texture->element.name.data, "base_color_texture") == 0)
                     pbrmat.Albedo_texture = texture;
                 if (strcmp(tex.texture->element.name.data, "normalmap_texture") == 0)
                     pbrmat.Normal_texture = texture;
@@ -120,9 +124,6 @@ void Model::loadTextures(const ufbx_material_list materiallist, MTL::Device * me
                     pbrmat.Roughness_texture = texture;
                 if (strcmp(tex.texture->element.name.data, "specular_texture") == 0)
                     pbrmat.Specular_Texture = texture;
-                
-              std::cout << tex.texture->element.name.data << std::endl;
-            }
 
             pbr_textures_map[mat->name.data] = std::move(pbrmat);
             

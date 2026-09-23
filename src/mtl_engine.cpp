@@ -10,7 +10,7 @@ void MTLEngine::init()
     createTriangle();
 
     camera = Camera(glm::vec3(0.0f, 0.0f, 0.f));
-    model1 = new Model("assets/Fallout_car.fbx",metalDevice);
+    model1 = new Model("assets/FBX_file/Untitled.fbx_Collection.fbx",metalDevice);
 
     createDepthAndTextures();
 
